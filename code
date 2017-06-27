@@ -1,5 +1,11 @@
-var request = require("request"); // built in method that allows the program to request websites
+//Need to install npm request: npm install request
+//Need to install npm JSON: npm install json
 
+var request = require("request"); // built in method that allows the program to request websites
+var request1 = require("request");
+//var collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'}); // used to sort array according to the number of followers. Need to install npm collator
+var arr = []; // array to store user url of each user
+var result = []; // array to store final result
 var options = {
     url: "https://api.github.com/search/users?q=location%3A%22'Cape+Town'%22&language:javascript&sort=followers&order=desc", //Searches for javascript programmers sorting them according to their number to followers
     headers: {
@@ -7,14 +13,73 @@ var options = {
     }
 };
 
+function naturalCompare(a, b) {  // comparator 
+    var ax = [], bx = [];
+
+    a.replace(/(\d+)|(\D+)/g, function(_, $1, $2) { ax.push([$1 || Infinity, $2 || ""]) });
+    b.replace(/(\d+)|(\D+)/g, function(_, $1, $2) { bx.push([$1 || Infinity, $2 || ""]) });
+
+    while(ax.length && bx.length) {
+        var an = ax.shift();
+        var bn = bx.shift();
+        var nn = (an[0] - bn[0]) || an[1].localeCompare(bn[1]);
+        if(nn) return nn;
+    }
+
+    return ax.length - bx.length;
+}
+
 function callback(error, response, body) {
     var jsn = JSON.parse(body); //converts the JSON object into a javascript object
 
     for(var i=0;i<10;i++){
-            console.log(i+" User name"+": "+jsn.items[i].login); //prints out the username
-            console.log(i+" Follower URL"+": "+jsn.items[i].followers_url);  // retrieves the usernames follower url
+        arr.push(jsn.items[i].url) // stores the url of the users in an array. I do this because the url json object contains the number of followers each user has
+    }
 
+    for(var i=0;i<10;i++){
+        console.log("The url: "+arr[i]);
+        //getResults(arr[i]);
+    }
+
+    getResults();
+    setTimeout(finalResult, 60000); // calls the results function to get the results. Use the time out function because I want all results returned before I print the final result.
+
+}
+
+function finalResult(callback1){ //prints out final result
+    result = result.sort(naturalCompare).reverse();
+    //result.sort(collator.compare).reverse(); //sorts the array and then reverses the order. Original sorting is in ascending order
+    console.log("About to print results");
+    for(var i=0;i<10;i++){
+        console.log(result[i]); // print out the number of followers a user has and the username
     }
 }
 
+function getResults(){
+
+    for(var i=0;i<10;i++){
+        var options1 = {
+            url: arr[i], //Searches for javascript programmers sorting them according to their number to followers
+            headers: {
+                "User-Agent": "request" //user-agent header name that gives us access to the page
+            }
+        };
+
+        function callback1(error, response, body1) {
+            var jsn = JSON.parse(body1); //converts the JSON object into a javascript object
+
+            result.push(jsn.followers+" followers "+"Username: "+jsn.login); // adds user info to array
+
+        }
+
+
+
+        request1(options1,callback1);
+
+    }
+
+};
 request(options, callback);
+
+
+
