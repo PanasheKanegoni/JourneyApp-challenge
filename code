@@ -3,7 +3,6 @@
 
 var request = require("request"); // built in method that allows the program to request websites
 var request1 = require("request");
-//var collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'}); // used to sort array according to the number of followers. Need to install npm collator
 var arr = []; // array to store user url of each user
 var result = []; // array to store final result
 var options = {
@@ -47,8 +46,7 @@ function callback(error, response, body) {
 }
 
 function finalResult(callback1){ //prints out final result
-    result = result.sort(naturalCompare).reverse();
-    //result.sort(collator.compare).reverse(); //sorts the array and then reverses the order. Original sorting is in ascending order
+    result = result.sort(naturalCompare).reverse();//sorts the array and then reverses the order. Original sorting is in ascending order
     console.log("About to print results");
     for(var i=0;i<10;i++){
         console.log(result[i]); // print out the number of followers a user has and the username
