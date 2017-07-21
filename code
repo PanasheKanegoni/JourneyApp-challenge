@@ -1,10 +1,12 @@
-//Need to install npm request: npm install request
-//Need to install npm JSON: npm install json
+/**
+ * Created by Panashe on 7/20/2017.
+ */
 
-var request = require("request"); // built in method that allows the program to request websites
-var request1 = require("request");
+//need to install npm request-promise
+//need to install npm json
+var rp = require('request-promise');
 var arr = []; // array to store user url of each user
-var result = []; // array to store final result
+var finalResult = []; //array to store the final results
 var options = {
     url: "https://api.github.com/search/users?q=location%3A%22'Cape+Town'%22&language:javascript&sort=followers&order=desc", //Searches for javascript programmers sorting them according to their number to followers
     headers: {
@@ -12,7 +14,7 @@ var options = {
     }
 };
 
-function naturalCompare(a, b) {  // comparator 
+function naturalCompare(a, b) {  // comparator
     var ax = [], bx = [];
 
     a.replace(/(\d+)|(\D+)/g, function(_, $1, $2) { ax.push([$1 || Infinity, $2 || ""]) });
@@ -28,56 +30,67 @@ function naturalCompare(a, b) {  // comparator
     return ax.length - bx.length;
 }
 
-function callback(error, response, body) {
-    var jsn = JSON.parse(body); //converts the JSON object into a javascript object
 
-    for(var i=0;i<10;i++){
-        arr.push(jsn.items[i].url) // stores the url of the users in an array. I do this because the url json object contains the number of followers each user has
-    }
+let start = function(){
+    rp(options)
+        .then(function(repos){
+            var jsn = JSON.parse(repos); //converts the JSON object into a javascript object
 
-    for(var i=0;i<10;i++){
-        console.log("The url: "+arr[i]);
-        //getResults(arr[i]);
-    }
+            for(var i=0;i<10;i++){
+                arr.push(jsn.items[i].url); // stores the url of the users in an array. I do this because the url json object contains the number of followers each user has
 
-    getResults();
-    setTimeout(finalResult, 60000); // calls the results function to get the results. Use the time out function because I want all results returned before I print the final result.
+            }
 
-}
+            for(var i=0;i<10;i++){
+                //arr.push(jsn.items[i].url); // stores the url of the users in an array. I do this because the url json object contains the number of followers each user has
+                console.log(jsn.items[i].url);
+            }
 
-function finalResult(callback1){ //prints out final result
-    result = result.sort(naturalCompare).reverse();//sorts the array and then reverses the order. Original sorting is in ascending order
-    console.log("About to print results");
-    for(var i=0;i<10;i++){
-        console.log(result[i]); // print out the number of followers a user has and the username
-    }
-}
+        }).then(function(){
+        for(var i=0;i<10;i++){
+            getResults(i);
+        }
+        })
 
-function getResults(){
+        .catch(function (err) {
+            console.log(err);
 
-    for(var i=0;i<10;i++){
+        });
+
+};
+
+let getResults = function(i){
         var options1 = {
-            url: arr[i], //Searches for javascript programmers sorting them according to their number to followers
+            url: arr[i], //retrieve information about a particular git user
             headers: {
                 "User-Agent": "request" //user-agent header name that gives us access to the page
             }
         };
 
-        function callback1(error, response, body1) {
-            var jsn = JSON.parse(body1); //converts the JSON object into a javascript object
+        rp(options1)
 
-            result.push(jsn.followers+" followers "+"Username: "+jsn.login); // adds user info to array
+        .then(function(result){
+            var jsn = JSON.parse(result); //converts the JSON object into a javascript object
+            finalResult.push(jsn.followers+" followers "+"Username: "+jsn.login); // adds user info to array
+        }).then(function(){
+            if(finalResult.length==10){ //checks if the final results array has a length of 10
+                finalResult.sort(naturalCompare).reverse(); // sorts the programmers based on followers
+                for(var i=0;i<10;i++){
+                    console.log(finalResult[i]);
+                }
+            }
 
-        }
+        })
 
+        .catch(function (err) {
+                console.log(err);
 
+        })
 
-        request1(options1,callback1);
-
-    }
 
 };
-request(options, callback);
 
+
+start();
 
 
